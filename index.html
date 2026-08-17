@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimClinico – Simulador de Paciente Virtual</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🏥 SimClinico</h1>
+            <p class="subtitle">Simulador de Paciente Virtual para Estudiantes de Medicina</p>
+            <button id="btn-settings" class="btn-secondary">⚙️ Configuración</button>
+        </header>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            ⚠️ <strong>Herramienta educativa:</strong> No sustituye el juicio clínico ni las guías oficiales.
+        </div>
+
+        <!-- Pantalla de Inicio -->
+        <section id="screen-home" class="screen active">
+            <div class="card">
+                <h2>Nueva Simulación</h2>
+                <div class="form-group">
+                    <label for="pathology">Patología a simular:</label>
+                    <input type="text" id="pathology" placeholder="Ej: neumonía adquirida en la comunidad, cetoacidosis diabética...">
+                </div>
+                <div class="form-group">
+                    <label for="difficulty">Nivel de dificultad:</label>
+                    <select id="difficulty">
+                        <option value="internado">Internado (Básico)</option>
+                        <option value="residente">Residente (Intermedio)</option>
+                        <option value="adjunto">Adjunto (Avanzado)</option>
+                    </select>
+                </div>
+                <button id="btn-start" class="btn-primary">🚀 Iniciar simulación</button>
+            </div>
+        </section>
+
+        <!-- Pantalla de Configuración (Modal) -->
+        <div id="modal-settings" class="modal hidden">
+            <div class="modal-content">
+                <h2>⚙️ Configuración de API</h2>
+                <div class="form-group">
+                    <label for="api-key">API Key de Qwen (DashScope):</label>
+                    <input type="password" id="api-key" placeholder="sk-...">
+                    <small>La clave se guarda localmente en tu navegador.</small>
+                </div>
+                <div class="modal-actions">
+                    <button id="btn-save-settings" class="btn-primary">Guardar</button>
+                    <button id="btn-close-settings" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla del Caso Clínico -->
+        <section id="screen-case" class="screen hidden">
+            <div class="case-header">
+                <div class="patient-info">
+                    <h2 id="patient-name">Paciente</h2>
+                    <p id="patient-details"></p>
+                </div>
+                <div class="vitals">
+                    <div class="vital"><span class="vital-label">TA:</span> <span id="vital-ta">--/--</span></div>
+                    <div class="vital"><span class="vital-label">FC:</span> <span id="vital-fc">--</span></div>
+                    <div class="vital"><span class="vital-label">FR:</span> <span id="vital-fr">--</span></div>
+                    <div class="vital"><span class="vital-label">Temp:</span> <span id="vital-temp">--</span></div>
+                    <div class="vital"><span class="vital-label">SatO₂:</span> <span id="vital-sato2">--</span></div>
+                </div>
+                <div class="time-display">
+                    ⏱️ Tiempo simulado: <span id="sim-time">0 min</span>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Panel de Acciones -->
+                <div class="actions-panel">
+                    <h3>Acciones Clínicas</h3>
+                    <div class="action-buttons">
+                        <button id="btn-anamnesis" class="btn-action">💬 Anamnesis</button>
+                        <button id="btn-exam" class="btn-action">🩺 Examen Físico</button>
+                        <button id="btn-studies" class="btn-action">🔬 Solicitar Estudios</button>
+                    </div>
+                    
+                    <!-- Área de input dinámico -->
+                    <div id="input-area" class="input-area hidden">
+                        <label id="input-label">Pregunta o maniobra:</label>
+                        <textarea id="user-input" rows="4" placeholder="Escribe aquí..."></textarea>
+                        <div class="input-actions">
+                            <button id="btn-send" class="btn-primary">Enviar</button>
+                            <button id="btn-cancel" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <!-- Historial de interacciones -->
+                    <div id="interaction-log" class="interaction-log">
+                        <div class="log-entry system">Caso iniciado. Comienza la evaluación del paciente.</div>
+                    </div>
+                </div>
+
+                <!-- Panel de Resultados -->
+                <div class="results-panel">
+                    <h3>Resultados / Respuestas</h3>
+                    <div id="results-content" class="results-content">
+                        <p class="placeholder-text">Los resultados aparecerán aquí...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="case-footer">
+                <button id="btn-close-case" class="btn-warning">📋 Cerrar caso y evaluar</button>
+            </div>
+        </section>
+
+        <!-- Pantalla de Evaluación -->
+        <section id="screen-evaluation" class="screen hidden">
+            <div class="card evaluation-card">
+                <h2>📊 Informe de Evaluación</h2>
+                <div id="evaluation-content" class="evaluation-content">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                <button id="btn-new-case" class="btn-primary">🔄 Nueva simulación</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/prompts.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

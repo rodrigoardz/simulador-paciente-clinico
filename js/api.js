@@ -5,7 +5,7 @@
 
 const APIConfig = {
     baseURL: 'https://ws-hzitm9joq5w4mrdn.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
-    model: 'qwen-plus'
+    model: 'qwen3.7-plus'
 };
 
 /**

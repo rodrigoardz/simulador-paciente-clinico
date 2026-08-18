@@ -4,7 +4,7 @@
  */
 
 const APIConfig = {
-    baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions'
+    baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
 model: 'qwen3.7-plus'
 };
 

@@ -212,6 +212,11 @@ body {
     width: 90%;
 }
 
+/* Modal más grande para el panel de cierre de caso */
+.modal-content.modal-large {
+    max-width: 700px;
+}
+
 .modal-actions {
     display: flex;
     gap: 10px;

@@ -109,11 +109,15 @@ REGLAS DE TIEMPO SIMULADO:
 - Laboratorio completo, radiografías: 30-45 minutos
 - TAC, resonancia, cultivos: 45-90 minutos
 
-REGLAS PARA RESULTADOS DE ESTUDIOS:
+REGLAS PARA RESULTADOS DE ESTUDIOS (CRÍTICO):
 - Cuando se soliciten estudios, DEBES incluir el campo "resultados" con valores específicos y realistas
 - Los resultados deben ser coherentes con el diagnóstico principal oculto
 - Usa valores numéricos reales con unidades cuando corresponda (ej: "Leucocitos: 15,200/mm³", "PCR: 45 mg/L")
 - Para imágenes describe hallazgos específicos (ej: "Rx tórax: infiltrado alveolar en lóbulo inferior derecho")
+- ⚠️ PROHIBIDO escribir el nombre de la enfermedad en resultados, alertas o evolución
+- MAL: "hallazgos compatibles con espondilitis anquilosante", "sugestivo de neumonía"
+- BIEN: "sacroileítis bilateral con erosiones subcondrales, cuadratura de cuerpos vertebrales y sindesmofitos marginales", "infiltrado alveolar en LID con broncograma aéreo"
+- Describe ÚNICAMENTE hallazgos objetivos. El estudiante debe integrar los datos por sí mismo.
 
 REGLAS GENERALES:
 - Los signos vitales deben ser fisiopatológicamente coherentes

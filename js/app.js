@@ -11,6 +11,7 @@ const screens = {
 };
 
 const modalSettings = document.getElementById('modal-settings');
+const closeCasePanel = document.getElementById('close-case-panel');
 
 // Elementos del caso clínico
 const uiElements = {
@@ -33,6 +34,8 @@ const uiElements = {
 // Estado de la acción actual
 let currentActionType = null;
 let isWaitingForAPI = false;
+let userDiagnosis = '';
+let userTreatment = '';
 
 /**
  * Inicializa la aplicación
@@ -64,7 +67,11 @@ function setupEventListeners() {
     document.getElementById('btn-cancel').addEventListener('click', cancelAction);
     
     // Botón de cerrar caso
-    document.getElementById('btn-close-case').addEventListener('click', closeCase);
+    document.getElementById('btn-close-case').addEventListener('click', openCloseCasePanel);
+    
+    // Panel de cierre de caso
+    document.getElementById('btn-submit-evaluation').addEventListener('click', submitEvaluationFromPanel);
+    document.getElementById('btn-back-to-case').addEventListener('click', closeCloseCasePanel);
     
     // Nueva simulación
     document.getElementById('btn-new-case').addEventListener('click', resetToHome);
@@ -621,6 +628,69 @@ function displayEvaluation(evaluation) {
         html += `<p>${evaluation.comentario_general}</p></div>`;
     }
     
+
+/**
+ * Abre el panel de cierre de caso
+ */
+function openCloseCasePanel() {
+    closeCasePanel.classList.remove('hidden');
+}
+
+/**
+ * Cierra el panel de cierre de caso y vuelve al caso
+ */
+function closeCloseCasePanel() {
+    closeCasePanel.classList.add('hidden');
+}
+
+/**
+ * Envía la evaluación desde el panel de cierre
+ */
+async function submitEvaluationFromPanel() {
+    userDiagnosis = document.getElementById('diagnosis-input').value.trim();
+    userTreatment = document.getElementById('treatment-input').value.trim();
+    
+    if (!userDiagnosis || !userTreatment) {
+        alert('❌ Por favor completa ambos campos: diagnóstico y tratamiento');
+        return;
+    }
+    
+    // Cerrar panel
+    closeCasePanel.classList.add('hidden');
+    
+    // Mostrar pantalla de carga del tutor (MEJORA #4)
+    showScreen('evaluation');
+    uiElements.evaluationContent.innerHTML = `
+        <div class="tutor-loading">
+            <div class="spinner"></div>
+            <h3>👨‍🏫 El tutor está evaluando tu caso...</h3>
+            <p>Esto puede tomar unos segundos. Analizando tu desempeño según guías clínicas vigentes.</p>
+        </div>
+    `;
+    
+    try {
+        // Generar evaluación con la LLM
+        const evaluation = await evaluateCase(
+            GameState.pathology,
+            GameState.hiddenContext,
+            userDiagnosis,
+            userTreatment,
+            GameState.interactionHistory
+        );
+        
+        // Mostrar evaluación formateada
+        displayEvaluation(evaluation);
+        
+    } catch (error) {
+        console.error('Error al evaluar:', error);
+        uiElements.evaluationContent.innerHTML = `
+            <div class="error-message">
+                <p>❌ Error al generar la evaluación: ${error.message}</p>
+                <p>Intenta nuevamente o verifica tu conexión.</p>
+            </div>
+        `;
+    }
+}
     uiElements.evaluationContent.innerHTML = html;
 }
 

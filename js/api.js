@@ -4,8 +4,8 @@
  */
 
 const APIConfig = {
-    baseURL: 'https://ws-hzitm9joq5w4mrdn.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
-    model: 'qwen3.7-plus'
+    baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions'
+model: 'qwen3.7-plus'
 };
 
 /**

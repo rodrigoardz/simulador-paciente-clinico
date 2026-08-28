@@ -115,6 +115,29 @@
             </div>
         </section>
 
+        <!-- Panel de Cierre de Caso -->
+        <div id="close-case-panel" class="modal hidden">
+            <div class="modal-content modal-large">
+                <h2>📋 Cerrar Caso Clínico</h2>
+                <p class="hint-text">Completa tu evaluación del caso antes de enviar al tutor.</p>
+                
+                <div class="form-group">
+                    <label for="diagnosis-input">Diagnóstico definitivo y diferenciales:</label>
+                    <textarea id="diagnosis-input" rows="6" placeholder="Escribe tu diagnóstico principal, diagnósticos diferenciales y justificación basada en los hallazgos..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="treatment-input">Tratamiento e indicaciones:</label>
+                    <textarea id="treatment-input" rows="6" placeholder="Describe el tratamiento farmacológico, medidas no farmacológicas, y recomendaciones de seguimiento..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button id="btn-submit-evaluation" class="btn-primary">📤 Enviar evaluación</button>
+                    <button id="btn-back-to-case" class="btn-secondary">↩️ Volver al caso</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Pantalla de Evaluación -->
         <section id="screen-evaluation" class="screen hidden">
             <div class="card evaluation-card">

@@ -45,6 +45,11 @@ TU FUNCIÓN:
 3. Evaluar cómo las acciones del usuario afectan al paciente
 4. Gestionar la evolución temporal (mejoría, deterioro, complicaciones)
 
+REGLA CRÍTICA DE COHERENCIA:
+- El diagnóstico_principal DEBE ser la patología solicitada (ej: si piden "neumonía", el diagnóstico principal debe ser neumonía o una variante específica como "neumonía adquirida en la comunidad")
+- Puedes añadir comorbilidades como antecedentes, pero la patología solicitada es el eje central del cuadro
+- Los hallazgos_clave deben orientar claramente hacia ese diagnóstico principal
+
 FORMATO DE RESPUESTA OBLIGATORIO:
 Responde ÚNICAMENTE con JSON válido según el contexto:
 
@@ -63,7 +68,7 @@ PARA GENERACIÓN INICIAL DEL CASO:
         "sato2": número
     },
     "cuadro_oculto": {
-        "diagnostico_principal": "Diagnóstico principal",
+        "diagnostico_principal": "Diagnóstico principal (DEBE ser la patología solicitada)",
         "diagnosticos_diferenciales": ["lista de diferenciales"],
         "hallazgos_clave": ["hallazgos que orientan al diagnóstico"],
         "gravedad": "leve/moderada/grave/crítica"
@@ -89,10 +94,32 @@ PARA EVOLUCIÓN DESPUÉS DE ACCIONES:
     "cambio_estado": "mejora/estable/deteriora/complicacion",
     "tiempo_transcurrido_min": número,
     "observaciones": "Breve descripción del cambio",
-    "alertas": ["alertas clínicas si las hay"]
+    "alertas": ["alertas clínicas si las hay"],
+    "hallazgos": "Hallazgos de la acción realizada (examen físico o descripción general)",
+    "resultados": {
+        "nombre_estudio_1": "Resultado específico y realista (ej: 'Rx tórax: consolidación en LID', 'Hemoglobina: 8.2 g/dL')",
+        "nombre_estudio_2": "Otro resultado si corresponde"
+    }
 }
 
-REGLAS:
+REGLAS DE TIEMPO SIMULADO:
+- Anamnesis: 5-10 minutos por interacción
+- Examen físico: 5-10 minutos por maniobra/exploración
+- Laboratorio básico (glucemia, ECG): 15-30 minutos
+- Laboratorio completo, radiografías: 30-45 minutos
+- TAC, resonancia, cultivos: 45-90 minutos
+
+REGLAS PARA RESULTADOS DE ESTUDIOS (CRÍTICO):
+- Cuando se soliciten estudios, DEBES incluir el campo "resultados" con valores específicos y realistas
+- Los resultados deben ser coherentes con el diagnóstico principal oculto
+- Usa valores numéricos reales con unidades cuando corresponda (ej: "Leucocitos: 15,200/mm³", "PCR: 45 mg/L")
+- Para imágenes describe hallazgos específicos (ej: "Rx tórax: infiltrado alveolar en lóbulo inferior derecho")
+- ⚠️ PROHIBIDO escribir el nombre de la enfermedad en resultados, alertas o evolución
+- MAL: "hallazgos compatibles con espondilitis anquilosante", "sugestivo de neumonía"
+- BIEN: "sacroileítis bilateral con erosiones subcondrales, cuadratura de cuerpos vertebrales y sindesmofitos marginales", "infiltrado alveolar en LID con broncograma aéreo"
+- Describe ÚNICAMENTE hallazgos objetivos. El estudiante debe integrar los datos por sí mismo.
+
+REGLAS GENERALES:
 - Los signos vitales deben ser fisiopatológicamente coherentes
 - La gravedad afecta la rapidez de deterioro
 - Las intervenciones apropiadas mejoran, las erróneas empeoran
@@ -112,6 +139,12 @@ TU FUNCIÓN:
 2. Comparar con guías clínicas vigentes (ADA, AHA, ESC, KDIGO, Surviving Sepsis, GOLD, etc.)
 3. Identificar aciertos, errores y omisiones
 4. Proporcionar recomendaciones de estudio específicas
+
+REGLA CRÍTICA SOBRE EL DIAGNÓSTICO:
+- El diagnóstico oculto PRINCIPAL es la patología que el usuario solicitó al inicio (ej: si pidió "neumonía", ese es el diagnóstico esperado)
+- Si el estudiante diagnostica correctamente la patología solicitada Y lo justifica con hallazgos coherentes, considera el diagnóstico como CORRECTO (puntaje 8-10)
+- Solo penaliza el diagnóstico si: (a) es contradictorio con los hallazgos clínicos, o (b) omite completamente la patología principal solicitada
+- Comorbilidades no diagnosticadas son omisiones menores, no errores graves
 
 FORMATO DE RESPUESTA OBLIGATORIO:
 Responde ÚNICAMENTE con JSON válido con esta estructura exacta:
@@ -136,7 +169,7 @@ Responde ÚNICAMENTE con JSON válido con esta estructura exacta:
         "cumplimiento": "alto/medio/bajo",
         "desviaciones": ["Desviaciones específicas de las guías"]
     },
-    "diagnostico_correcto": "El diagnóstico que debió llegar",
+    "diagnostico_correcto": "El diagnóstico que debió llegar (la patología solicitada)",
     "diagnosticos_diferenciales_esperados": ["Diferenciales que debió considerar"],
     "tratamiento_optimo": {
         "farmacologico": ["Tratamiento farmacológico indicado"],
@@ -153,6 +186,7 @@ REGLAS:
 - Sé estricto pero constructivo en la evaluación
 - Cita guías reales y sociedades médicas reconocidas
 - Adapta la exigencia al nivel de dificultad seleccionado
+- El diagnóstico correcto es la patología solicitada + justificación con hallazgos
 - El JSON debe ser estrictamente válido y parseable
 - No incluyas texto fuera del JSON`
 };

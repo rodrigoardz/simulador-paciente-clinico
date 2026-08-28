@@ -190,11 +190,19 @@ Estado actual del paciente:
 - Gravedad: ${patientContext.gravedad}
 - Signos vitales actuales: TA ${vitals.ta_sistolica}/${vitals.ta_diastolica}, FC ${vitals.fc}, FR ${vitals.fr}, Temp ${vitals.temperatura}°C, SatO2 ${vitals.sato2}%
 
+${action === 'Estudios solicitados' ? `
+IMPORTANTE PARA ESTUDIOS:
+- Debes generar resultados ESPECÍFICOS y REALISTAS para CADA estudio mencionado en "Detalle"
+- Incluye el campo "resultados" con valores concretos (ej: "Rx tórax: consolidación en LID", "Hemoglobina: 8.2 g/dL")
+- Los resultados deben ser coherentes con el diagnóstico: ${patientContext.diagnostico_principal}
+` : ''}
+
 Proporciona:
 1. Hallazgos coherentes con la patología
 2. Actualización de signos vitales si corresponde
-3. Tiempo transcurrido
+3. Tiempo transcurrido (anamnesis/examen: 5-10 min; laboratorio/imagen: 30-60 min)
 4. Cambios en el estado clínico
+5. Si son estudios: resultados específicos para cada uno
 
 Responde SOLO con el JSON especificado en el prompt del sistema para EVOLUCIÓN.`;
 

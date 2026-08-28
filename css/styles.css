@@ -212,6 +212,11 @@ body {
     width: 90%;
 }
 
+/* Modal más grande para el panel de cierre de caso */
+.modal-content.modal-large {
+    max-width: 700px;
+}
+
 .modal-actions {
     display: flex;
     gap: 10px;
@@ -486,4 +491,74 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
+}
+
+/* ========================================
+   NUEVOS ESTILOS - MEJORAS Y BUG FIXES
+   ======================================== */
+
+/* Panel de cierre de caso (MEJORA #2) */
+.close-case-panel {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.close-case-panel h3 {
+    color: var(--accent);
+    margin-bottom: 15px;
+}
+
+.close-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.close-actions button {
+    flex: 1;
+}
+
+/* Indicador de carga del tutor (MEJORA #4) */
+.tutor-loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.tutor-loading h3 {
+    color: var(--accent);
+    margin: 20px 0 10px;
+}
+
+.tutor-loading .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Lista de resultados de estudios (BUG FIX #1) */
+.study-results-list {
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    padding: 15px 15px 15px 35px;
+    margin: 10px 0;
+}
+
+.study-results-list li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.study-results-list li strong {
+    color: var(--text-primary);
 }

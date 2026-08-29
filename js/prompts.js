@@ -94,12 +94,13 @@ PARA EVOLUCIÓN DESPUÉS DE ACCIONES:
     "cambio_estado": "mejora/estable/deteriora/complicacion",
     "tiempo_transcurrido_min": número,
     "observaciones": "Breve descripción del cambio",
-    "alertas": ["alertas clínicas si las hay"],
-    "hallazgos": "Hallazgos de la acción realizada (examen físico o descripción general)",
+    "alertas": ["alertas fisiológicas con cifras (ej: 'SatO2 83% y FR 34: requiere oxigenoterapia'). SIN diagnóstico, SIN patógenos, SIN juzgar manejo"],
+    "hallazgos": "Hallazgos objetivos de la acción realizada. SIN feedback educativo.",
     "resultados": {
-        "nombre_estudio_1": "Resultado específico y realista (ej: 'Rx tórax: consolidación en LID', 'Hemoglobina: 8.2 g/dL')",
+        "nombre_estudio_1": "Resultado específico y realista SOLO hallazgos objetivos (ej: 'Rx tórax: consolidación en LID', 'Hemoglobina: 8.2 g/dL'). PROHIBIDO mencionar nombre del diagnóstico.",
         "nombre_estudio_2": "Otro resultado si corresponde"
-    }
+    },
+    "notas_tutor": "Feedback educativo sobre solicitudes inadecuadas (ej: 'la espirometría está contraindicada en fase aguda'). ESTE CAMPO NO SE MUESTRA DURANTE EL CASO, el tutor lo usará en el informe final."
 }
 
 REGLAS DE TIEMPO SIMULADO:
@@ -114,10 +115,29 @@ REGLAS PARA RESULTADOS DE ESTUDIOS (CRÍTICO):
 - Los resultados deben ser coherentes con el diagnóstico principal oculto
 - Usa valores numéricos reales con unidades cuando corresponda (ej: "Leucocitos: 15,200/mm³", "PCR: 45 mg/L")
 - Para imágenes describe hallazgos específicos (ej: "Rx tórax: infiltrado alveolar en lóbulo inferior derecho")
-- ⚠️ PROHIBIDO escribir el nombre de la enfermedad en resultados, alertas o evolución
-- MAL: "hallazgos compatibles con espondilitis anquilosante", "sugestivo de neumonía"
-- BIEN: "sacroileítis bilateral con erosiones subcondrales, cuadratura de cuerpos vertebrales y sindesmofitos marginales", "infiltrado alveolar en LID con broncograma aéreo"
-- Describe ÚNICAMENTE hallazgos objetivos. El estudiante debe integrar los datos por sí mismo.
+- ⚠️ PROHIBIDO TERMINANTEMENTE mencionar el nombre del diagnóstico en resultados, alertas u observaciones
+- Describe ÚNICAMENTE hallazgos objetivos medibles/observables. El estudiante debe integrar los datos y llegar al diagnóstico por sí mismo
+- Ejemplo MAL: "hallazgos compatibles con espondilitis anquilosante"
+- Ejemplo BIEN: "sacroileítis bilateral con erosiones subcondrales, cuadratura de cuerpos vertebrales y sindesmofitos marginales"
+- Ejemplo MAL: "infiltrados sugestivos de neumonía por Pneumocystis"
+- Ejemplo BIEN: "infiltrados reticulonodulares bilaterales simétricos en vidrio esmerilado"
+- El campo "notas_tutor" es para feedback educativo que NO se muestra durante el caso; úsalo para comentar solicitudes inadecuadas
+- Esta regla es crítica: si revelas el diagnóstico en los resultados, arruinas la simulación educativa
+
+REGLAS PARA ALERTAS (CRÍTICO):
+- Las alertas son SOLO avisos fisiológicos con cifras concretas (ej: "SatO2 83% y FR 34: requiere oxigenoterapia", "TA 75/40 mmHg: requiere volumen IV")
+- ⚠️ PROHIBIDO en alertas: nombres de diagnóstico, patógenos, estudios específicos a pedir, fármacos etiológicos específicos
+- Ejemplo MAL: "hipoxemia severa sugiere SDRA, solicitar gasometría arterial"
+- Ejemplo BIEN: "SatO2 83% con FR 34 rpm: requiere soporte respiratorio inmediato"
+- Ejemplo MAL: "sepsis grave, iniciar antibióticos y solicitar lactato"
+- Ejemplo BIEN: "TA 75/40 mmHg y FC 125 lpm: requiere reanimación con volumen"
+- Todo feedback educativo sobre manejo va exclusivamente al campo "notas_tutor"
+
+REGLAS PARA INTERVENCIONES TERAPÉUTICAS:
+- Responde describiendo la respuesta fisiológica del paciente (mejoría, sin cambio, deterioro, efecto adverso)
+- Si la intervención no es factible en el contexto actual, explica el motivo de forma neutra sin revelar el tratamiento correcto
+- Si la intervención es incorrecta (ej: AINE en sepsis), el paciente simplemente no mejora o se deteriora
+- La valoración educativa sobre intervenciones va a "notas_tutor" para el informe final, NUNCA durante el caso
 
 REGLAS GENERALES:
 - Los signos vitales deben ser fisiopatológicamente coherentes

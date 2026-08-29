@@ -64,12 +64,8 @@ function setupEventListeners() {
     document.getElementById('btn-send').addEventListener('click', sendAction);
     document.getElementById('btn-cancel').addEventListener('click', cancelAction);
     
-    // Botón de cerrar caso
-    document.getElementById('btn-close-case').addEventListener('click', showCloseCasePanel);
-    
-    // Botones del panel de cierre
-    document.getElementById('btn-submit-evaluation').addEventListener('click', submitEvaluationFromPanel);
-    document.getElementById('btn-back-to-case').addEventListener('click', hideCloseCasePanel);
+    // Botón de cerrar caso - ahora llama directamente a cerrarCaso()
+    document.getElementById('btn-close-case').addEventListener('click', cerrarCaso);
     
     // Nueva simulación
     document.getElementById('btn-new-case').addEventListener('click', resetToHome);
@@ -807,6 +803,53 @@ function displayEvaluation(evaluation) {
     }
     
     uiElements.evaluationContent.innerHTML = html;
+}
+
+/**
+ * Función para cerrar el caso y generar evaluación
+ * Lee los cuadernos de DX y TX, valida y llama a generateEvaluation
+ */
+function cerrarCaso() {
+    const dxText = document.getElementById('notebook-diagnosis').value.trim();
+    const txText = document.getElementById('notebook-treatment').value.trim();
+    
+    // Validar que ambos campos tengan contenido
+    if (!dxText || !txText) {
+        const errorDiv = document.getElementById('close-case-error');
+        if (errorDiv) {
+            errorDiv.textContent = '⚠️ Por favor completa ambos cuadernos (Diagnóstico y Tratamiento) antes de cerrar el caso.';
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            // Si no existe el div de error, crearlo temporalmente
+            const tempError = document.createElement('div');
+            tempError.id = 'close-case-error';
+            tempError.className = 'alert alert-warning';
+            tempError.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 1rem; margin: 1rem 0; border-radius: 4px;';
+            tempError.textContent = '⚠️ Por favor completa ambos cuadernos (Diagnóstico y Tratamiento) antes de cerrar el caso.';
+            document.querySelector('.case-footer').insertAdjacentElement('beforebegin', tempError);
+            setTimeout(() => tempError.remove(), 5000);
+        }
+        return;
+    }
+    
+    // Limpiar cualquier mensaje de error previo
+    const errorDiv = document.getElementById('close-case-error');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+    
+    // Mostrar indicador de carga del tutor
+    uiElements.resultsContent.innerHTML = `
+        <div class="loading-indicator">
+            <div class="spinner"></div>
+            <p><strong>👨‍🏫 El tutor está evaluando tu caso...</strong></p>
+            <p class="loading-subtext">Esto puede tardar unos segundos mientras se genera el informe completo.</p>
+        </div>
+    `;
+    
+    // Generar evaluación con los contenidos de los cuadernos
+    generateEvaluation(dxText, txText);
 }
 
 /**

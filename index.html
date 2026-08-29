@@ -83,6 +83,7 @@
                         <button id="btn-anamnesis" class="btn-action">💬 Anamnesis</button>
                         <button id="btn-exam" class="btn-action">🩺 Examen Físico</button>
                         <button id="btn-studies" class="btn-action">🔬 Solicitar Estudios</button>
+                        <button id="btn-intervene" class="btn-action btn-intervene">💉 Intervenir / Tratar</button>
                     </div>
                     
                     <!-- Área de input dinámico -->
@@ -110,33 +111,45 @@
                 </div>
             </div>
 
+            <!-- Cuadernos de Diagnóstico y Tratamiento -->
+            <div class="notebooks-container">
+                <div class="notebook">
+                    <h3>📓 Cuaderno de Diagnóstico</h3>
+                    <p class="notebook-hint">Formula tu diagnóstico diferencial mientras avanzas en el caso</p>
+                    <textarea id="notebook-diagnosis" rows="6" placeholder="Ej: Diagnóstico principal: Neumonía adquirida en la comunidad. Diferenciales: Exacerbación de EPOC, embolia pulmonar, insuficiencia cardíaca..."></textarea>
+                </div>
+                <div class="notebook">
+                    <h3>📓 Cuaderno de Tratamiento</h3>
+                    <p class="notebook-hint">Planifica tu tratamiento e indicaciones</p>
+                    <textarea id="notebook-treatment" rows="6" placeholder="Ej: Antibioticoterapia empírica con amoxicilina-ácido clavulánico, oxigenoterapia si SatO2 < 90%, antipiréticos, hidratación..."></textarea>
+                </div>
+            </div>
+
             <div class="case-footer">
                 <button id="btn-close-case" class="btn-warning">📋 Cerrar caso y evaluar</button>
             </div>
-        </section>
-
-        <!-- Panel de Cierre de Caso -->
-        <div id="close-case-panel" class="modal hidden">
-            <div class="modal-content modal-large">
-                <h2>📋 Cerrar Caso Clínico</h2>
-                <p class="hint-text">Completa tu evaluación del caso antes de enviar al tutor.</p>
+            
+            <!-- Panel de cierre de caso (oculto por defecto) -->
+            <div id="close-case-panel" class="close-case-panel hidden">
+                <h3>📝 Cierre del Caso Clínico</h3>
+                <p>Completa tu evaluación antes de finalizar la simulación.</p>
                 
                 <div class="form-group">
-                    <label for="diagnosis-input">Diagnóstico definitivo y diferenciales:</label>
-                    <textarea id="diagnosis-input" rows="6" placeholder="Escribe tu diagnóstico principal, diagnósticos diferenciales y justificación basada en los hallazgos..."></textarea>
+                    <label for="close-diagnosis">Diagnóstico definitivo y diferenciales:</label>
+                    <textarea id="close-diagnosis" rows="6" placeholder="Escribe tu diagnóstico principal, diagnósticos diferenciales considerados y justificación basada en los hallazgos..."></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="treatment-input">Tratamiento e indicaciones:</label>
-                    <textarea id="treatment-input" rows="6" placeholder="Describe el tratamiento farmacológico, medidas no farmacológicas, y recomendaciones de seguimiento..."></textarea>
+                    <label for="close-treatment">Tratamiento e indicaciones:</label>
+                    <textarea id="close-treatment" rows="6" placeholder="Describe el tratamiento farmacológico, medidas no farmacológicas, indicaciones de seguimiento y recomendaciones..."></textarea>
                 </div>
                 
-                <div class="modal-actions">
+                <div class="close-actions">
                     <button id="btn-submit-evaluation" class="btn-primary">📤 Enviar evaluación</button>
                     <button id="btn-back-to-case" class="btn-secondary">↩️ Volver al caso</button>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Pantalla de Evaluación -->
         <section id="screen-evaluation" class="screen hidden">

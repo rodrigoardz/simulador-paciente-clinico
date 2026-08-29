@@ -11,7 +11,6 @@ const screens = {
 };
 
 const modalSettings = document.getElementById('modal-settings');
-const closeCasePanel = document.getElementById('close-case-panel');
 
 // Elementos del caso clínico
 const uiElements = {
@@ -34,8 +33,6 @@ const uiElements = {
 // Estado de la acción actual
 let currentActionType = null;
 let isWaitingForAPI = false;
-let userDiagnosis = '';
-let userTreatment = '';
 
 /**
  * Inicializa la aplicación
@@ -61,17 +58,18 @@ function setupEventListeners() {
     document.getElementById('btn-anamnesis').addEventListener('click', () => selectAction('anamnesis'));
     document.getElementById('btn-exam').addEventListener('click', () => selectAction('examenFisico'));
     document.getElementById('btn-studies').addEventListener('click', () => selectAction('estudios'));
+    document.getElementById('btn-intervene').addEventListener('click', () => selectAction('intervencion'));
     
     // Botones del área de input
     document.getElementById('btn-send').addEventListener('click', sendAction);
     document.getElementById('btn-cancel').addEventListener('click', cancelAction);
     
     // Botón de cerrar caso
-    document.getElementById('btn-close-case').addEventListener('click', openCloseCasePanel);
+    document.getElementById('btn-close-case').addEventListener('click', showCloseCasePanel);
     
-    // Panel de cierre de caso
+    // Botones del panel de cierre
     document.getElementById('btn-submit-evaluation').addEventListener('click', submitEvaluationFromPanel);
-    document.getElementById('btn-back-to-case').addEventListener('click', closeCloseCasePanel);
+    document.getElementById('btn-back-to-case').addEventListener('click', hideCloseCasePanel);
     
     // Nueva simulación
     document.getElementById('btn-new-case').addEventListener('click', resetToHome);
@@ -283,7 +281,8 @@ function selectAction(actionType) {
     const labels = {
         anamnesis: 'Pregunta al paciente:',
         examenFisico: 'Describe la maniobra o exploración:',
-        estudios: 'Especifica los estudios a solicitar:'
+        estudios: 'Especifica los estudios a solicitar:',
+        intervencion: 'Describe la intervención terapéutica:'
     };
     
     uiElements.inputLabel.textContent = labels[actionType];
@@ -299,7 +298,8 @@ function getPlaceholder(actionType) {
     const placeholders = {
         anamnesis: 'Ej: ¿Desde cuándo tiene estos síntomas? ¿Hay algo que los mejore o empeore?',
         examenFisico: 'Ej: Auscultación pulmonar, palpación abdominal, inspección de extremidades...',
-        estudios: 'Ej: Hemograma completo, radiografía de tórax, ECG, glucemia...'
+        estudios: 'Ej: Hemograma completo, radiografía de tórax, ECG, glucemia...',
+        intervencion: 'Ej: O2 por puntas nasales 2 L/min, ketorolaco 10 mg IV, suero salino 500 mL...'
     };
     return placeholders[actionType] || '';
 }
@@ -359,6 +359,37 @@ async function sendAction() {
             `;
             
             GameState.logInteraction('ai', response.respuesta);
+            
+        } else if (currentActionType === 'intervencion') {
+            // Intervención terapéutica - usar motor clínico
+            response = await processClinicalAction(
+                'Intervención terapéutica',
+                userInput,
+                GameState.hiddenContext,
+                GameState.vitals
+            );
+            
+            // Actualizar signos vitales si hay cambios
+            if (response.signos_vitales) {
+                GameState.updateVitals(response.signos_vitales);
+                updateVitalsDisplay();
+            }
+            
+            // Actualizar tiempo
+            if (response.tiempo_transcurrido_min) {
+                GameState.addTime(response.tiempo_transcurrido_min);
+                updateTimeDisplay();
+            }
+            
+            // Mostrar resultados de la intervención
+            uiElements.resultsContent.innerHTML = formatInterventionResults(response);
+            
+            GameState.logInteraction('ai', JSON.stringify(response));
+            
+            // Mostrar alertas si las hay
+            if (response.alertas && response.alertas.length > 0) {
+                showAlerts(response.alertas);
+            }
             
         } else {
             // Examen físico o estudios - usar motor clínico
@@ -422,18 +453,30 @@ async function sendAction() {
 function formatClinicalResults(response) {
     let html = '<div class="clinical-results">';
     
-    // Hallazgos principales
+    // Hallazgos principales (sanitizados)
     if (response.hallazgos || response.observaciones) {
+        const hallazgosSanitizados = sanitizarResultados(
+            response.hallazgos || response.observaciones,
+            GameState.pathology,
+            GameState.hiddenContext?.diagnostico_principal
+        );
         html += '<h4>Hallazgos:</h4>';
-        html += `<p>${response.hallazgos || response.observaciones}</p>`;
+        html += `<p>${hallazgosSanitizados}</p>`;
     }
     
     // Resultados de estudios
-    if (response.resultados_estudios) {
+    const estudiosData = response.resultados || response.resultados_estudios;
+    if (estudiosData && typeof estudiosData === 'object' && Object.keys(estudiosData).length > 0) {
         html += '<h4>Resultados de estudios:</h4>';
-        html += '<ul>';
-        for (const [estudio, resultado] of Object.entries(response.resultados_estudios)) {
-            html += `<li><strong>${estudio}:</strong> ${resultado}</li>`;
+        html += '<ul class="study-results-list">';
+        for (const [estudio, resultado] of Object.entries(estudiosData)) {
+            // Sanitizar cada resultado individual
+            const resultadoSanitizado = sanitizarResultados(
+                resultado,
+                GameState.pathology,
+                GameState.hiddenContext?.diagnostico_principal
+            );
+            html += `<li><strong>${estudio}:</strong> ${resultadoSanitizado}</li>`;
         }
         html += '</ul>';
     }
@@ -460,11 +503,145 @@ function formatClinicalResults(response) {
 }
 
 /**
- * Muestra alertas clínicas
+ * Formatea los resultados de intervenciones terapéuticas
+ */
+function formatInterventionResults(response) {
+    let html = '<div class="clinical-results">';
+    
+    // Hallazgos/respuesta a la intervención
+    if (response.hallazgos || response.observaciones) {
+        const hallazgosSanitizados = sanitizarResultados(
+            response.hallazgos || response.observaciones,
+            GameState.pathology,
+            GameState.hiddenContext?.diagnostico_principal
+        );
+        html += '<h4>Respuesta del paciente:</h4>';
+        html += `<p>${hallazgosSanitizados}</p>`;
+    }
+    
+    // Resultados de estudios si los hay (intervención puede incluir estudios)
+    const estudiosData = response.resultados || response.resultados_estudios;
+    if (estudiosData && typeof estudiosData === 'object' && Object.keys(estudiosData).length > 0) {
+        html += '<h4>Resultados de estudios:</h4>';
+        html += '<ul class="study-results-list">';
+        for (const [estudio, resultado] of Object.entries(estudiosData)) {
+            const resultadoSanitizado = sanitizarResultados(
+                resultado,
+                GameState.pathology,
+                GameState.hiddenContext?.diagnostico_principal
+            );
+            html += `<li><strong>${estudio}:</strong> ${resultadoSanitizado}</li>`;
+        }
+        html += '</ul>';
+    }
+    
+    // Cambio de estado
+    if (response.cambio_estado) {
+        const stateColors = {
+            mejora: 'success',
+            estable: 'system',
+            deteriora: 'warning',
+            complicacion: 'danger'
+        };
+        const stateText = {
+            mejora: '🟢 El paciente mejora tras la intervención',
+            estable: '🔵 El paciente estable, sin cambio significativo',
+            deteriora: '🟡 El paciente deteriora tras la intervención',
+            complicacion: '🔴 ¡Complicación tras la intervención!'
+        };
+        html += `<p class="state-change ${stateColors[response.cambio_estado]}">${stateText[response.cambio_estado]}</p>`;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+/**
+ * SANITIZER: Elimina spoilers de diagnósticos en textos del motor clínico
+ * @param {string} texto - Texto a sanitizar
+ * @param {string} patologia - Patología solicitada por el usuario
+ * @param {string} diagnosticoOculto - Diagnóstico oculto generado
+ * @returns {string} Texto limpio sin revelaciones del diagnóstico
+ */
+function sanitizarResultados(texto, patologia, diagnosticoOculto) {
+    if (!texto || typeof texto !== 'string') return texto || '';
+    
+    // Palabras/frases prohibidas que revelan diagnóstico o dan feedback educativo indebido
+    const frasesProhibidas = [
+        'no indicadas', 'contraindicada', 'no aporta valor', 'no aporta valor diagnóstico',
+        'retrasa el manejo', 'no se ha prescrito', 'hallazgos compatibles con',
+        'sugiere', 'compatible con', 'orientativo de', 'consistente con',
+        'patognomónico', 'típico de', 'característico de', 'propio de',
+        'debe considerar', 'se recomienda', 'lo ideal sería', 'hubiera sido mejor',
+        'solicitar prueba', 'iniciar tratamiento', 'sugestivos de', 'sugerente de'
+    ];
+    
+    // Construir lista de términos a eliminar (patología + diagnóstico + palabras clave)
+    let terminosAEliminar = [];
+    
+    // Añadir patología solicitada (dividir en palabras clave)
+    if (patologia) {
+        terminosAEliminar.push(patologia.toLowerCase());
+        // Extraer palabras individuales significativas (>3 letras)
+        const palabrasPatologia = patologia.toLowerCase().split(/\s+/);
+        palabrasPatologia.forEach(p => {
+            if (p.length > 3 && !['con', 'del', 'los', 'las', 'una', 'por', 'para'].includes(p)) {
+                terminosAEliminar.push(p);
+            }
+        });
+    }
+    
+    // Añadir diagnóstico oculto
+    if (diagnosticoOculto) {
+        terminosAEliminar.push(diagnosticoOculto.toLowerCase());
+        const palabrasDiag = diagnosticoOculto.toLowerCase().split(/\s+/);
+        palabrasDiag.forEach(p => {
+            if (p.length > 3 && !['con', 'del', 'los', 'las', 'una', 'por', 'para'].includes(p)) {
+                terminosAEliminar.push(p);
+            }
+        });
+    }
+    
+    // Añadir frases prohibidas
+    frasesProhibidas.forEach(frase => terminosAEliminar.push(frase.toLowerCase()));
+    
+    // Dividir texto en oraciones
+    const oraciones = texto.match(/[^.!?]+[.!?]+/g) || [texto];
+    
+    // Filtrar oraciones que contengan términos prohibidos
+    const oracionesLimpias = oraciones.filter(oracion => {
+        const oracionLower = oracion.toLowerCase();
+        // Verificar si contiene algún término prohibido
+        return !terminosAEliminar.some(termino => 
+            termino && oracionLower.includes(termino.toLowerCase())
+        );
+    });
+    
+    // Unir oraciones restantes
+    let resultado = oracionesLimpias.join(' ').trim();
+    
+    // Si se eliminó todo, devolver mensaje genérico
+    if (!resultado) {
+        return 'Hallazgos registrados.';
+    }
+    
+    return resultado;
+}
+
+/**
+ * Muestra alertas clínicas (sanitizadas)
  */
 function showAlerts(alerts) {
     alerts.forEach(alert => {
-        addLogEntry('system', `⚠️ ALERTA: ${alert}`, true);
+        // Sanitizar alerta antes de mostrar
+        const alertSanitizada = sanitizarResultados(
+            alert,
+            GameState.pathology,
+            GameState.hiddenContext?.diagnostico_principal
+        );
+        if (alertSanitizada) {
+            addLogEntry('system', `⚠️ ALERTA: ${alertSanitizada}`, true);
+        }
     });
 }
 
@@ -543,7 +720,7 @@ function displayEvaluation(evaluation) {
     if (evaluation.aciertos && evaluation.aciertos.length > 0) {
         html += '<div class="evaluation-section">';
         html += '<h4>✅ Aciertos</h4>';
-        html += '<ul>';
+        html += '<ul class="study-results-list">';
         evaluation.aciertos.forEach(acierto => {
             html += `<li>${acierto}</li>`;
         });
@@ -554,7 +731,7 @@ function displayEvaluation(evaluation) {
     if (evaluation.errores_omisiones && evaluation.errores_omisiones.length > 0) {
         html += '<div class="evaluation-section">';
         html += '<h4>⚠️ Errores y Omisiones</h4>';
-        html += '<ul>';
+        html += '<ul class="study-results-list">';
         evaluation.errores_omisiones.forEach(error => {
             html += `<li>${error}</li>`;
         });
@@ -569,7 +746,7 @@ function displayEvaluation(evaluation) {
         html += `<p><strong>Cumplimiento:</strong> ${evaluation.comparacion_guias.cumplimiento.toUpperCase()}</p>`;
         
         if (evaluation.comparacion_guias.desviaciones && evaluation.comparacion_guias.desviaciones.length > 0) {
-            html += '<p><strong>Desviaciones:</strong></p><ul>';
+            html += '<p><strong>Desviaciones:</strong></p><ul class="study-results-list">';
             evaluation.comparacion_guias.desviaciones.forEach(dev => {
                 html += `<li>${dev}</li>`;
             });
@@ -584,7 +761,7 @@ function displayEvaluation(evaluation) {
         html += '<h4>💊 Tratamiento Óptimo Según Guías</h4>';
         
         if (evaluation.tratamiento_optimo.farmacologico) {
-            html += '<p><strong>Farmacológico:</strong></p><ul>';
+            html += '<p><strong>Farmacológico:</strong></p><ul class="study-results-list">';
             evaluation.tratamiento_optimo.farmacologico.forEach(tx => {
                 html += `<li>${tx}</li>`;
             });
@@ -592,7 +769,7 @@ function displayEvaluation(evaluation) {
         }
         
         if (evaluation.tratamiento_optimo.no_farmacologico) {
-            html += '<p><strong>No farmacológico:</strong></p><ul>';
+            html += '<p><strong>No farmacológico:</strong></p><ul class="study-results-list">';
             evaluation.tratamiento_optimo.no_farmacologico.forEach(tx => {
                 html += `<li>${tx}</li>`;
             });
@@ -600,7 +777,7 @@ function displayEvaluation(evaluation) {
         }
         
         if (evaluation.tratamiento_optimo.seguimiento) {
-            html += '<p><strong>Seguimiento:</strong></p><ul>';
+            html += '<p><strong>Seguimiento:</strong></p><ul class="study-results-list">';
             evaluation.tratamiento_optimo.seguimiento.forEach(tx => {
                 html += `<li>${tx}</li>`;
             });
@@ -614,7 +791,7 @@ function displayEvaluation(evaluation) {
     if (evaluation.recomendaciones_estudio && evaluation.recomendaciones_estudio.length > 0) {
         html += '<div class="evaluation-section">';
         html += '<h4>📖 Recomendaciones de Estudio</h4>';
-        html += '<ul>';
+        html += '<ul class="study-results-list">';
         evaluation.recomendaciones_estudio.forEach(rec => {
             html += `<li>${rec}</li>`;
         });
@@ -628,69 +805,6 @@ function displayEvaluation(evaluation) {
         html += `<p>${evaluation.comentario_general}</p></div>`;
     }
     
-
-/**
- * Abre el panel de cierre de caso
- */
-function openCloseCasePanel() {
-    closeCasePanel.classList.remove('hidden');
-}
-
-/**
- * Cierra el panel de cierre de caso y vuelve al caso
- */
-function closeCloseCasePanel() {
-    closeCasePanel.classList.add('hidden');
-}
-
-/**
- * Envía la evaluación desde el panel de cierre
- */
-async function submitEvaluationFromPanel() {
-    userDiagnosis = document.getElementById('diagnosis-input').value.trim();
-    userTreatment = document.getElementById('treatment-input').value.trim();
-    
-    if (!userDiagnosis || !userTreatment) {
-        alert('❌ Por favor completa ambos campos: diagnóstico y tratamiento');
-        return;
-    }
-    
-    // Cerrar panel
-    closeCasePanel.classList.add('hidden');
-    
-    // Mostrar pantalla de carga del tutor (MEJORA #4)
-    showScreen('evaluation');
-    uiElements.evaluationContent.innerHTML = `
-        <div class="tutor-loading">
-            <div class="spinner"></div>
-            <h3>👨‍🏫 El tutor está evaluando tu caso...</h3>
-            <p>Esto puede tomar unos segundos. Analizando tu desempeño según guías clínicas vigentes.</p>
-        </div>
-    `;
-    
-    try {
-        // Generar evaluación con la LLM
-        const evaluation = await evaluateCase(
-            GameState.pathology,
-            GameState.hiddenContext,
-            userDiagnosis,
-            userTreatment,
-            GameState.interactionHistory
-        );
-        
-        // Mostrar evaluación formateada
-        displayEvaluation(evaluation);
-        
-    } catch (error) {
-        console.error('Error al evaluar:', error);
-        uiElements.evaluationContent.innerHTML = `
-            <div class="error-message">
-                <p>❌ Error al generar la evaluación: ${error.message}</p>
-                <p>Intenta nuevamente o verifica tu conexión.</p>
-            </div>
-        `;
-    }
-}
     uiElements.evaluationContent.innerHTML = html;
 }
 

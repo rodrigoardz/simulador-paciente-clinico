@@ -4,6 +4,9 @@
  */
 
 const GameState = {
+    // ID único del caso actual (timestamp)
+    caseId: null,
+    
     // Información del paciente
     patient: null,
     
@@ -23,6 +26,10 @@ const GameState = {
     // Estado clínico actual
     clinicalState: 'stable', // stable, improving, worsening, critical
     
+    // Contexto oculto del caso (diagnóstico principal, hallazgos clave)
+    hiddenContext: null,
+    antecedentesOcultos: null,
+    
     // Historial de interacciones
     interactionHistory: [],
     
@@ -30,7 +37,8 @@ const GameState = {
     actionsPerformed: {
         anamnesis: [],
         examenFisico: [],
-        estudios: []
+        estudios: [],
+        intervencion: []
     },
     
     // Diagnóstico y tratamiento propuestos por el usuario
@@ -42,21 +50,34 @@ const GameState = {
     pathology: '',
     
     /**
-     * Inicializa un nuevo caso clínico
+     * Inicializa un nuevo caso clínico con reset completo
      */
     initNewCase(pathology, difficulty) {
+        this.caseId = Date.now(); // ID único basado en timestamp
         this.pathology = pathology;
         this.difficulty = difficulty;
         this.simulatedTime = 0;
         this.clinicalState = 'stable';
+        this.hiddenContext = null;
+        this.antecedentesOcultos = null;
         this.interactionHistory = [];
         this.actionsPerformed = {
             anamnesis: [],
             examenFisico: [],
-            estudios: []
+            estudios: [],
+            intervencion: []
         };
         this.userDiagnosis = null;
         this.userTreatment = null;
+        this.patient = null;
+        this.vitals = {
+            ta_sistolica: 0,
+            ta_diastolica: 0,
+            fc: 0,
+            fr: 0,
+            temperatura: 0,
+            sato2: 0
+        };
     },
     
     /**

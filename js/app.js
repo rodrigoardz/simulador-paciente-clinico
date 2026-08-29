@@ -684,7 +684,8 @@ function setLoading(loading) {
     }
 }
 
-}
+/**
+ * Muestra la evaluación formateada
  */
 function displayEvaluation(evaluation) {
     let html = '';
